@@ -1,0 +1,5 @@
+# Copy to apps/mcp/.dev.vars for local dev (git-ignored). Used from Gate 2.
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+COOKIE_ENCRYPTION_KEY=
+FOUNDER_EMAILS=
