@@ -1,0 +1,29 @@
+{
+  "name": "founder-cockpit",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "pnpm -r test",
+    "dev:mcp": "pnpm --filter @cockpit/mcp dev",
+    "dev:dashboard": "pnpm --filter @cockpit/dashboard dev"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260930.0",
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.0",
+    "prettier": "^3.9.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "~4.1.11",
+    "wrangler": "^4.145.0"
+  }
+}

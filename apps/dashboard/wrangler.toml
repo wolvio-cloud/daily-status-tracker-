@@ -1,0 +1,14 @@
+name = "founder-cockpit-dashboard"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# Shared with apps/mcp. Replace database_id after `wrangler d1 create founder-cockpit`.
+[[d1_databases]]
+binding = "DB"
+database_name = "founder-cockpit"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "../../migrations"
