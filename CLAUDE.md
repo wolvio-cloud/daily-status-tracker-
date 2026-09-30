@@ -4,8 +4,8 @@ Private operating dashboard for the Wolvio founders. Data is entered by talking 
 Claude (claude.ai → remote MCP server) and viewed on a read-only dashboard.
 Built in gates (see README). **Do one gate per session, then STOP.**
 
-> Fill in every `[DECIDE]` before starting Gate 1. Claude: if you hit a `[DECIDE]`
-> that is still unfilled and it affects what you are building, ask — do not guess.
+> The rules below are **starting defaults** chosen at Gate 0. Change any of them by
+> editing this file. Claude: treat them as settled. Ask only when a rule doesn't cover the case.
 
 ## Stack
 
@@ -34,10 +34,10 @@ Built in gates (see README). **Do one gate per session, then STOP.**
 - **Dates** are ISO `YYYY-MM-DD` strings in **IST (Asia/Kolkata)**. Timestamps
   (`created_at`, `updated_at`) are ISO-8601 UTC. Months are `YYYY-MM`.
 - **Financial year** is Indian: 1 Apr – 31 Mar. Q1 = Apr–Jun … Q4 = Jan–Mar.
-  FY label format: `[DECIDE: "FY26-27" or "FY2027"]`.
-- **IDs**: `[DECIDE: ULID text ids (recommended) or integer autoincrement]`.
+  FY label format: `FY26-27` (1 Apr 2026 – 31 Mar 2027); quarter label `Q2 FY26-27`.
+- **IDs**: ULID text ids (sortable by creation time, safe to show in URLs/chat).
 - **Soft deletes only** (`deleted_at`). Every read excludes soft-deleted rows.
-- **GST**: `[DECIDE: default GST rate, e.g. 18%]`. Invoices store excl-GST, GST and total
+- **GST**: default rate **18%** (IT services); can be overridden per invoice. Invoices store excl-GST, GST and total
   separately; revenue figures use **excl-GST** amounts.
 - Every write goes through the repository and writes its audit row in the same
   `db.batch()`.
@@ -46,27 +46,33 @@ Built in gates (see README). **Do one gate per session, then STOP.**
 
 - **Revenue billed** (MTD/QTD/FY) = sum of `amount_excl_gst_paise` by `invoice_date`.
 - **Receivables** = invoice total − payments received, for invoices with outstanding > 0.
-  Ageing buckets by days past `due_date`: `[DECIDE: 0–30 / 31–60 / 61–90 / 90+]`.
-- **Burn** (monthly) = sum of expenses in the month.
-  Include `founder_salary` in burn? `[DECIDE: yes/no]`.
+  Ageing buckets by days past `due_date`: **Not due** / **1–30** / **31–60** / **61–90** / **90+**.
+- **Burn** (monthly) = sum of all expenses in the month, **including `founder_salary`**
+  (it is real cash out). Reports may also show burn excl. founder salary as a secondary figure.
 - **Net burn** = burn − cash received (payments) in the month.
-- **Runway** (months) = latest cash snapshot balance ÷ average net burn over the last
-  `[DECIDE: 3]` months. Zero or negative net burn → runway "∞ / not burning".
-- **Project RAG** (unless `rag_override` is set, which requires a reason):
-  - Red if: `[DECIDE: e.g. any milestone > 14 days overdue, or any invoice > 60 days overdue]`
-  - Amber if: `[DECIDE: e.g. any milestone overdue, or next milestone due in ≤ 7 days and not done]`
-  - Green otherwise.
-- **Allocation flags** per person per month: over-allocated if total > 100%;
-  under-allocated if total < `[DECIDE: 50]`%.
-- **Weighted pipeline** = Σ deal value × stage probability. Stages and probabilities:
-  `[DECIDE: e.g. lead 10%, qualified 25%, proposal 50%, negotiation 75%, won 100%, lost 0%]`.
-- **Focus meter** = share of founder allocation on `[DECIDE: e.g. product vs service
-projects]`; target `[DECIDE: e.g. ≥ 40% product]`.
+- **Runway** (months) = latest cash snapshot balance ÷ average net burn over the **last 3
+  complete months**. Zero or negative net burn → runway "∞ / not burning". No cash
+  snapshot → runway "unknown".
+- **Project RAG** — only for `status = active` projects (paused/closed show no RAG).
+  A set `rag_override` wins and must have a reason. Otherwise:
+  - **Red** if any open milestone is > 14 days past due, **or** any invoice on the
+    project is > 60 days past due, **or** `end_date` has passed while still active.
+  - **Amber** if any open milestone is 1–14 days past due, **or** any invoice is 31–60
+    days past due, **or** the next open milestone is due within 7 days.
+  - **Green** otherwise.
+- **Allocation flags** per person per month: **over-allocated** if total > 100%;
+  **under-allocated** if total < 50%. Inactive people are not flagged.
+- **Pipeline stages** and probabilities (weighted pipeline = Σ value × probability):
+  `lead` 10% · `qualified` 25% · `proposal` 50% · `negotiation` 75% · `won` 100% ·
+  `lost` 0%. Won/lost deals are excluded from the "open pipeline" total.
+- **Focus meter** = share of **founders'** allocation % (people with `role = founder`)
+  in the month that is on `type = product` projects vs `service`/`retainer`.
+  Target **≥ 40% product**. Below 25% = red, 25–39% = amber, ≥ 40% = green.
 
 ## People
 
-- Founders (FOUNDER_EMAILS allowlist): `[DECIDE: founder1@…, founder2@…]`
-  — store as a secret, never commit the real list.
+- Founders are allowlisted via the `FOUNDER_EMAILS` secret (comma-separated). The real
+  emails are supplied at deploy time (Gate 2) — never committed to this repo.
 
 ## Security model
 
