@@ -36,6 +36,7 @@ Built in gates (see README). **Do one gate per session, then STOP.**
 - **Financial year** is Indian: 1 Apr – 31 Mar. Q1 = Apr–Jun … Q4 = Jan–Mar.
   FY label format: `FY26-27` (1 Apr 2026 – 31 Mar 2027); quarter label `Q2 FY26-27`.
 - **IDs**: ULID text ids (sortable by creation time, safe to show in URLs/chat).
+- **Milestones**: `done_at` is the completion date (`YYYY-MM-DD`), null while open.
 - **Soft deletes only** (`deleted_at`). Every read excludes soft-deleted rows.
 - **GST**: default rate **18%** (IT services); can be overridden per invoice. Invoices store excl-GST, GST and total
   separately; revenue figures use **excl-GST** amounts.
@@ -58,13 +59,14 @@ Built in gates (see README). **Do one gate per session, then STOP.**
   - **Red** if any open milestone is > 14 days past due, **or** any invoice on the
     project is > 60 days past due, **or** `end_date` has passed while still active.
   - **Amber** if any open milestone is 1–14 days past due, **or** any invoice is 31–60
-    days past due, **or** the next open milestone is due within 7 days.
+    days past due, **or** an open milestone is due within the next 7 days (today included).
   - **Green** otherwise.
 - **Allocation flags** per person per month: **over-allocated** if total > 100%;
   **under-allocated** if total < 50%. Inactive people are not flagged.
 - **Pipeline stages** and probabilities (weighted pipeline = Σ value × probability):
   `lead` 10% · `qualified` 25% · `proposal` 50% · `negotiation` 75% · `won` 100% ·
-  `lost` 0%. Won/lost deals are excluded from the "open pipeline" total.
+  `lost` 0%. The headline open total and weighted figure use **open deals only**
+  (won/lost excluded — won work shows up as invoices); won/lost still appear per stage.
 - **Focus meter** = share of **founders'** allocation % (people with `role = founder`)
   in the month that is on `type = product` projects vs `service`/`retainer`.
   Target **≥ 40% product**. Below 25% = red, 25–39% = amber, ≥ 40% = green.
@@ -86,6 +88,14 @@ Built in gates (see README). **Do one gate per session, then STOP.**
 - Rate limit: 60 writes/hour per user.
 - **Never log amounts, emails or tokens.** No amounts in URLs. `console.log` is lint-banned.
 - Secrets live in `wrangler secret` / `.dev.vars` (git-ignored) — never in the repo.
+
+## Where things live (packages/core)
+
+- `money.ts` parseInr / formatInr / formatInrCompact · `fy.ts` FY, quarters, IST dates
+- `rules.ts` every business rule above (thresholds exported as constants)
+- `schemas.ts` Zod schemas + enums (mirror the CHECKs in `migrations/0001_init.sql`)
+- `repo.ts` D1 repository: write + audit row in one `db.batch()`, optimistic lock on
+  `updated_at`, soft delete · `sample-data.ts` SAMPLE dataset · `sql-export.ts` INSERT SQL
 
 ## Working rules for Claude
 

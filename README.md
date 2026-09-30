@@ -45,6 +45,18 @@ pnpm --filter @cockpit/mcp exec wrangler d1 create founder-cockpit
 pnpm --filter @cockpit/mcp exec wrangler d1 migrations apply founder-cockpit --local
 ```
 
+### Local database with sample data
+
+```sh
+pnpm db:migrate:local      # apply migrations/ to the local D1 (.wrangler/ in apps/mcp)
+pnpm seed --reset          # wipe local tables and load SAMPLE data (fake amounts)
+pnpm seed --reset --date 2026-09-30   # same, with dates anchored to a fixed day
+```
+
+Sample data covers RedTaxi, Vayona CEI, IDFIS, RAMS360, India Nippon, MKM and
+Kunneckt. Every figure is invented and every row is marked `SAMPLE`. Seeding the
+remote database needs `--remote --i-understand-this-is-remote`.
+
 ### Secrets
 
 Local: copy `.dev.vars.example` to `apps/mcp/.dev.vars` and fill in. Production:
